@@ -78,8 +78,11 @@ public:
 	void clear();
 
 	std::string ToString() const;
+
+#ifdef COMPILE_JSON_PARSER
 	static json FromString(const std::string& string);
 	static json FromFile(const std::string& filename);
+#endif
 
 private:
 	void SetBool(bool n);
@@ -92,7 +95,7 @@ private:
 	void* data = nullptr;
 	JsonType type;
 
-
+#ifdef COMPILE_JSON_PARSER
 	class Parser
 	{
 	public:
@@ -110,8 +113,11 @@ private:
 		const std::string json_str;
 		size_t pos;
 	};
+#endif
 };
 
 
 std::ostream& operator<<(std::ostream& os, const json& j);
+#ifdef COMPILE_JSON_PARSER
 std::istream& operator>>(std::istream& is, json& j);
+#endif

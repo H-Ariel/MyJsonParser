@@ -319,19 +319,6 @@ std::string json::ToString() const
 
 	return sstr.str();
 }
-json json::FromString(const std::string& string)
-{
-	Parser parser(string);
-	return parser.Parse();
-}
-json json::FromFile(const std::string& filename)
-{
-	json json;
-	std::ifstream file(filename);
-	if (file.is_open())
-		file >> json;
-	return json;
-}
 
 void json::SetBool(bool n)
 {
@@ -381,13 +368,27 @@ std::ostream& operator<<(std::ostream& os, const json& j)
 {
 	return os << j.ToString();
 }
+
+#ifdef COMPILE_JSON_PARSER
+json json::FromString(const std::string& string)
+{
+	Parser parser(string);
+	return parser.Parse();
+}
+json json::FromFile(const std::string& filename)
+{
+	json json;
+	std::ifstream file(filename);
+	if (file.is_open())
+		file >> json;
+	return json;
+}
+
 std::istream& operator>>(std::istream& is, json& j)
 {
 	j = json::FromString(std::string(std::istreambuf_iterator<char>(is), {}));
 	return is;
 }
-
-
 
 
 
@@ -541,3 +542,4 @@ inline void json::Parser::skipSpaces()
 {
 	while (isspace(json_str[pos])) pos++;
 }
+#endif
