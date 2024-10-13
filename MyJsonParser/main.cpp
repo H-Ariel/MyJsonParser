@@ -7,7 +7,7 @@ int main()
 	json j, child;
 	j["name"] = "John";
 	j["age"] = 25;
-	j["phoneNumbers"] = { "010-1234-5678", "010-9876-5432" };
+	j["phoneNumbers"] = vector<string>({ "010-1234-5678", "010-9876-5432" });
 	j["children"] = {};
 	child["name"] = "Smith";
 	child["age"] = 6;

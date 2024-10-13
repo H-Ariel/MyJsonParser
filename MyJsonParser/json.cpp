@@ -3,7 +3,7 @@
 #include <fstream>
 
 #define THROW_TYPE_ERROR(type)	throw std::exception("type is not " #type );
-#define THROW_INVALID_JSON	throw std::exception("invalid json")
+#define THROW_INVALID_JSON		throw std::exception("invalid json")
 
 
 enum class json::JsonType
@@ -18,86 +18,28 @@ enum class json::JsonType
 };
 
 
-json::json() : data(nullptr)
-{
-	clear();
-}
-json::json(bool n) : data(nullptr)
-{
-	SetBool(n);
-}
-json::json(short n) : data(nullptr)
-{
-	SetInt(n);
-}
-json::json(int n) : data(nullptr)
-{
-	SetInt(n);
-}
-json::json(long long n) : data(nullptr)
-{
-	SetInt(n);
-}
-json::json(float n) : data(nullptr)
-{
-	SetFloat(n);
-}
-json::json(double n) : data(nullptr)
-{
-	SetFloat(n);
-}
-json::json(const char n[]) : data(nullptr)
-{
-	SetStr(n);
-}
-json::json(const std::string& n) : data(nullptr)
-{
-	SetStr(n);
-}
-json::json(const std::initializer_list<json>& n) : data(nullptr)
-{
-	SetList(n);
-}
-json::json(const std::vector<json>& n) : data(nullptr)
-{
-	SetList(n);
-}
-json::json(const std::map<std::string, json>& n) : data(nullptr)
-{
-	SetDict(n);
-}
-json::json(const json& j)
-{
-	*this = j;
-}
+json::json() { data = nullptr; type = JsonType::None; }
+json::json(bool n) : data(nullptr) { SetBool(n); }
+json::json(Int_t n) : data(nullptr) { SetInt(n); }
+json::json(Float_t n) : data(nullptr) { SetFloat(n); }
+json::json(const Str_t& n) : data(nullptr) { SetStr(n); }
+json::json(const List_t& n) : data(nullptr) { SetList(n); }
+json::json(const Dict_t& n) : data(nullptr) { SetDict(n); }
+json::json(const json& j) : data(nullptr) { *this = j; }
 json::json(json&& j) noexcept
 {
 	type = j.type;
 	data = j.data;
+	j.type = JsonType::None;
 	j.data = nullptr;
 }
-json::~json()
-{
-	clear();
-}
+json::~json() { clear(); }
 
-json& json::operator=(bool n) { SetBool(n); return *this; }
-json& json::operator=(short n) { SetInt(n); return *this; }
-json& json::operator=(int n) { SetInt(n); return *this; }
-json& json::operator=(long long n) { SetInt(n); return *this; }
-json& json::operator=(float n) { SetFloat(n); return *this; }
-json& json::operator=(double n) { SetFloat(n); return *this; }
-json& json::operator=(const char n[]) { SetStr(n); return *this; }
-json& json::operator=(const std::string& n) { SetStr(n); return *this; }
-json& json::operator=(const std::initializer_list<json>& n) { SetList(n); return *this; }
-json& json::operator=(const std::vector<json>& n) { SetList(n); return *this; }
-json& json::operator=(const std::map<std::string, json>& n) { SetDict(n); return *this; }
 json& json::operator=(const nullptr_t&) { clear(); return *this; }
 json& json::operator=(const json& j)
 {
-	type = j.type;
-	data = nullptr;
-	switch (type)
+	clear();
+	switch (j.type)
 	{
 	case json::JsonType::Boolean: SetBool(*(Int_t*)j.data); break;
 	case json::JsonType::Integer: SetInt(*(Int_t*)j.data); break;
@@ -112,6 +54,7 @@ json& json::operator=(json&& j) noexcept
 {
 	type = j.type;
 	data = j.data;
+	j.type = JsonType::None;
 	j.data = nullptr;
 	return *this;
 }
@@ -138,12 +81,12 @@ json::operator const int() const
 		return (int)(*(Float_t*)data);
 	THROW_TYPE_ERROR(integer);
 }
-json::operator const long long() const
+json::operator const Int_t() const
 {
 	if (type == JsonType::Integer)
 		return (*(Int_t*)data);
 	if (type == JsonType::Float)
-		return (long long)(*(Float_t*)data);
+		return (Int_t)(*(Float_t*)data);
 	THROW_TYPE_ERROR(integer);
 }
 json::operator const float() const
@@ -154,12 +97,12 @@ json::operator const float() const
 		return (float)(*(Int_t*)data);
 	THROW_TYPE_ERROR(float);
 }
-json::operator const double() const
+json::operator const Float_t() const
 {
 	if (type == JsonType::Float)
 		return (*(Float_t*)data);
 	if (type == JsonType::Integer)
-		return (double)(*(Int_t*)data);
+		return (Float_t)(*(Int_t*)data);
 	THROW_TYPE_ERROR(float);
 }
 json::operator const char* () const
@@ -187,12 +130,10 @@ json::operator const Dict_t() const
 	return (*(Dict_t*)data);
 }
 
-json& json::operator[](const std::string& key)
+json& json::operator[](const Str_t& key)
 {
 	if (type == JsonType::None)
-	{
 		SetDict({});
-	}
 
 	if (type == JsonType::Dictionary)
 	{
@@ -203,7 +144,7 @@ json& json::operator[](const std::string& key)
 }
 json& json::operator[](const char key[])
 {
-	return this->operator[]((const std::string)(key));
+	return (*this)[Str_t(key)];
 }
 json& json::operator[](size_t idx)
 {
@@ -219,17 +160,15 @@ json& json::operator[](int idx)
 	return this->operator[]((size_t)idx);
 }
 
-const json& json::operator[](const std::string& key) const
+const json& json::operator[](const Str_t& key) const
 {
 	if (type == JsonType::Dictionary)
-	{
 		return (*(Dict_t*)data).at(key);
-	}
 	THROW_TYPE_ERROR(dictionary);
 }
 const json& json::operator[](const char key[]) const
 {
-	return this->operator[]((const std::string)(key));
+	return (*this)[Str_t(key)];
 }
 const json& json::operator[](size_t idx) const
 {
@@ -245,18 +184,17 @@ const json& json::operator[](int idx) const
 	return this->operator[]((size_t)idx);
 }
 
-void json::append(const json& json)
+void json::append(const json& j)
 {
-	if (type == JsonType::None || type == JsonType::List)
-	{
-		type = JsonType::List;
-		(*(List_t*)data).push_back(json);
-	}
+	if (type == JsonType::None)
+		SetList({});
+	if (type == JsonType::List)
+		(*(List_t*)data).push_back(j);
 	else
 		THROW_TYPE_ERROR(list);
 }
 
-bool json::contains(const std::string& key) const
+bool json::contains(const Str_t& key) const
 {
 	if (type != JsonType::Dictionary)
 		return false;
@@ -282,7 +220,29 @@ void json::iterate(std::function<void(const std::string&, const json&)> func) co
 
 void json::clear()
 {
-	delete data;
+	if (data) {
+		switch (type) {
+		case JsonType::Boolean:
+		case JsonType::Integer:
+			delete static_cast<Int_t*>(data);
+			break;
+		case JsonType::Float:
+			delete static_cast<Float_t*>(data);
+			break;
+		case JsonType::String:
+			delete static_cast<Str_t*>(data);
+			break;
+		case JsonType::List:
+			delete static_cast<List_t*>(data);
+			break;
+		case JsonType::Dictionary:
+			delete static_cast<Dict_t*>(data);
+			break;
+		default:
+			break;
+		}
+	}
+
 	data = nullptr;
 	type = JsonType::None;
 }
@@ -380,14 +340,14 @@ void json::SetBool(bool n)
 	data = new Int_t;
 	*(Int_t*)data = n;
 }
-void json::SetInt(long long n)
+void json::SetInt(Int_t n)
 {
 	clear();
 	type = JsonType::Integer;
 	data = new Int_t;
 	*(Int_t*)data = n;
 }
-void json::SetFloat(double n)
+void json::SetFloat(Float_t n)
 {
 	clear();
 	type = JsonType::Float;

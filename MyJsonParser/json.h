@@ -12,7 +12,7 @@ private:
 	enum class JsonType;
 	typedef std::string Str_t;
 	typedef std::vector<json> List_t;
-	typedef std::map<std::string, json> Dict_t;
+	typedef std::map<Str_t, json> Dict_t;
 	typedef long long Int_t;
 	typedef double Float_t;
 
@@ -20,31 +20,29 @@ private:
 public:
 	json();
 	json(bool n);
-	json(short n);
-	json(int n);
-	json(long long n);
-	json(float n);
-	json(double n);
-	json(const char n[]);
-	json(const std::string& n);
-	json(const std::initializer_list<json>& n);
-	json(const std::vector<json>& n);
-	json(const std::map<std::string, json>& n);
+	json(Int_t n);
+	json(Float_t n);
+	json(const Str_t& n);
+	json(const List_t& n);
+	json(const Dict_t& n);
 	json(const json& j);
 	json(json&& j) noexcept;
 	~json();
 
-	json& operator=(bool n);
-	json& operator=(short n);
-	json& operator=(int n);
-	json& operator=(long long n);
-	json& operator=(float n);
-	json& operator=(double n);
-	json& operator=(const char n[]);
-	json& operator=(const std::string& n);
-	json& operator=(const std::initializer_list<json>& n);
-	json& operator=(const std::vector<json>& n);
-	json& operator=(const std::map<std::string, json>& n);
+	json(short n) : json((Int_t)n) {}
+	json(unsigned short n) : json((Int_t)n) {}
+	json(int n) : json((Int_t)n) {}
+	json(unsigned int n) : json((Int_t)n) {}
+	json(float n) : json((Float_t)n) {}
+
+	template<template<class ...> class ListContainer, class T>
+	json(const ListContainer<T>& n) : data(nullptr) {
+		List_t list;
+		for (auto& i : n)
+			list.push_back(json(i));
+		SetList(list);
+	}
+
 	json& operator=(const nullptr_t&);
 	json& operator=(const json& j);
 	json& operator=(json&& j) noexcept;
@@ -52,30 +50,30 @@ public:
 	operator const bool() const;
 	operator const short() const;
 	operator const int() const;
-	operator const long long() const;
+	operator const Int_t() const;
 	operator const float() const;
-	operator const double() const;
+	operator const Float_t() const;
 	operator const char* () const;
 	operator const Str_t() const;
 	operator const List_t() const;
 	operator const Dict_t() const;
 
-	json& operator[](const std::string& key);
+	json& operator[](const Str_t& key);
 	json& operator[](const char key[]);
 	json& operator[](size_t idx);
 	json& operator[](int idx);
 
-	const json& operator[](const std::string& key) const;
+	const json& operator[](const Str_t& key) const;
 	const json& operator[](const char key[]) const;
 	const json& operator[](size_t idx) const;
 	const json& operator[](int idx) const;
 
-	void append(const json& json);
+	void append(const json& j);
 
-	bool contains(const std::string& key) const;
+	bool contains(const Str_t& key) const;
 
 	void iterate(std::function<void(const json&)> func) const;
-	void iterate(std::function<void(const std::string&, const json&)> func) const;
+	void iterate(std::function<void(const Str_t&, const json&)> func) const;
 
 	void clear();
 
@@ -91,7 +89,7 @@ private:
 	void SetList(const List_t& n);
 	void SetDict(const Dict_t& n);
 
-	void* data;
+	void* data = nullptr;
 	JsonType type;
 
 
